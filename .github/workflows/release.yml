@@ -83,6 +83,35 @@ jobs:
             echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
           
+      - name: List downloaded artifacts
+        run: |
+          echo "Listing all artifacts:"
+          find ./artifacts -type f -name "*" | head -20
+          
+      - name: Rename artifacts to match expected names
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Rename Windows installer
+          if ls ./artifacts/windows-installer/*.exe 1> /dev/null 2>&1; then
+            mv ./artifacts/windows-installer/*.exe "./artifacts/windows-installer/Secura Auth Setup v${VERSION}.exe"
+          fi
+          
+          # Rename macOS installer  
+          if ls ./artifacts/macos-installer/*.dmg 1> /dev/null 2>&1; then
+            mv ./artifacts/macos-installer/*.dmg "./artifacts/macos-installer/Secura Auth-v${VERSION}.dmg"
+          fi
+          
+          # Rename Linux installer
+          if ls ./artifacts/linux-installer/*.AppImage 1> /dev/null 2>&1; then
+            mv ./artifacts/linux-installer/*.AppImage "./artifacts/linux-installer/Secura Auth-v${VERSION}.AppImage"
+          fi
+          
+      - name: List renamed artifacts
+        run: |
+          echo "Listing renamed artifacts:"
+          find ./artifacts -type f -name "*" | head -20
+          
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -110,7 +139,7 @@ jobs:
           ELECTRON_BUILDER_HTTP_TIMEOUT: 120000
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/windows-installer/Secura Auth Setup ${{ steps.version.outputs.version }}.exe
+          asset_path: ./artifacts/windows-installer/Secura Auth Setup v${{ steps.version.outputs.version }}.exe
           asset_name: Secura-Auth-Setup-${{ steps.version.outputs.version }}-Windows.exe
           asset_content_type: application/octet-stream
           
@@ -121,7 +150,7 @@ jobs:
           ELECTRON_BUILDER_HTTP_TIMEOUT: 120000
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/macos-installer/Secura Auth-${{ steps.version.outputs.version }}.dmg
+          asset_path: ./artifacts/macos-installer/Secura Auth-v${{ steps.version.outputs.version }}.dmg
           asset_name: Secura-Auth-${{ steps.version.outputs.version }}-macOS.dmg
           asset_content_type: application/octet-stream
           
@@ -132,6 +161,6 @@ jobs:
           ELECTRON_BUILDER_HTTP_TIMEOUT: 120000
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/linux-installer/Secura Auth-${{ steps.version.outputs.version }}.AppImage
+          asset_path: ./artifacts/linux-installer/Secura Auth-v${{ steps.version.outputs.version }}.AppImage
           asset_name: Secura-Auth-${{ steps.version.outputs.version }}-Linux.AppImage
           asset_content_type: application/octet-stream
