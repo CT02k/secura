@@ -1,7 +1,8 @@
-const { app, BrowserWindow, ipcMain } = require("electron")
+const { app, BrowserWindow, ipcMain, dialog } = require("electron")
 const path = require("path")
 const fs = require("fs")
 const { authenticator } = require("otplib")
+const { autoUpdater } = require("electron-updater")
 
 const dataPath = path.join(app.getPath("userData"), "data.json")
 
@@ -32,6 +33,55 @@ function createWindow() {
   })
 
   win.loadFile("index.html")
+  
+  // Check for updates after window is created
+  checkForUpdates(win)
+}
+
+// Auto-updater configuration
+autoUpdater.autoDownload = false
+autoUpdater.autoInstallOnAppQuit = true
+
+function checkForUpdates(window) {
+  // Only check for updates in production
+  if (process.env.NODE_ENV === 'development') {
+    return
+  }
+  
+  autoUpdater.checkForUpdatesAndNotify()
+  
+  autoUpdater.on('update-available', (info) => {
+    dialog.showMessageBox(window, {
+      type: 'info',
+      title: 'Update Available',
+      message: `A new version (${info.version}) is available!`,
+      detail: 'Would you like to download it now? The app will restart after the update.',
+      buttons: ['Download', 'Later'],
+      defaultId: 0
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.downloadUpdate()
+      }
+    })
+  })
+  
+  autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox(window, {
+      type: 'info',
+      title: 'Update Ready',
+      message: 'Update downloaded. The application will restart to apply the update.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall()
+      }
+    })
+  })
+  
+  autoUpdater.on('error', (error) => {
+    console.error('Auto-updater error:', error)
+  })
 }
 
 app.whenReady().then(createWindow)
@@ -55,4 +105,12 @@ ipcMain.handle("minimize-window", (event) => {
 ipcMain.handle("close-window", (event) => {
   const win = BrowserWindow.fromWebContents(event.sender)
   win.close()
+})
+ipcMain.handle("check-for-updates", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  checkForUpdates(win)
+  return true
+})
+ipcMain.handle("get-app-version", () => {
+  return app.getVersion()
 })

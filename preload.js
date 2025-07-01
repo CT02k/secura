@@ -6,4 +6,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   generateCode: (secret) => ipcRenderer.invoke("generate-code", secret),
   minimizeWindow: () => ipcRenderer.invoke("minimize-window"),
   closeWindow: () => ipcRenderer.invoke("close-window"),
+  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
+  getAppVersion: () => ipcRenderer.invoke("get-app-version"),
 })

@@ -4,11 +4,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("search-input")
   const hideShowBtn = document.querySelector(".hide-show i")
   const tabContainer = document.querySelector(".tabs")
+  const versionElement = document.getElementById("app-version")
+  const updateCheckBtn = document.getElementById("update-check-btn")
 
   let tokens = []
   let hideCodes = true
   let activeTab = "all"
-  let renderedTokens = [] // Cache for rendered tokens to avoid full re-renders
+  
+  // Load and display app version
+  window.electronAPI.getAppVersion().then(version => {
+    versionElement.textContent = `v${version}`
+  })
+  
+  // Update check functionality
+  updateCheckBtn.addEventListener("click", async () => {
+    const icon = updateCheckBtn.querySelector("i")
+    icon.classList.add("fa-spin")
+    updateCheckBtn.disabled = true
+    
+    try {
+      await window.electronAPI.checkForUpdates()
+    } catch (error) {
+      console.error("Update check failed:", error)
+    } finally {
+      setTimeout(() => {
+        icon.classList.remove("fa-spin")
+        updateCheckBtn.disabled = false
+      }, 2000)
+    }
+  })
 
   function switchTab(tabName) {
     activeTab = tabName
