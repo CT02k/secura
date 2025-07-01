@@ -1,5 +1,8 @@
 name: Build and Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -96,9 +99,6 @@ jobs:
             - **Windows**: Download the `.exe` file
             - **macOS**: Download the `.dmg` file  
             - **Linux**: Download the `.AppImage` file
-            
-            ## ⚠️ Important Notice
-            This is a learning project and the author's first Electron application. Use at your own risk for non-critical accounts.
           draft: false
           prerelease: false
           
@@ -108,7 +108,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/windows-installer/Secura Auth Setup 1.0.0.exe
+          asset_path: ./artifacts/windows-installer/Secura Auth Setup ${{ steps.version.outputs.version }}.exe
           asset_name: Secura-Auth-Setup-${{ steps.version.outputs.version }}-Windows.exe
           asset_content_type: application/octet-stream
           
@@ -118,7 +118,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/macos-installer/Secura Auth-1.0.0.dmg
+          asset_path: ./artifacts/macos-installer/Secura Auth-${{ steps.version.outputs.version }}.dmg
           asset_name: Secura-Auth-${{ steps.version.outputs.version }}-macOS.dmg
           asset_content_type: application/octet-stream
           
@@ -128,6 +128,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/linux-installer/Secura Auth-1.0.0.AppImage
+          asset_path: ./artifacts/linux-installer/Secura Auth-${{ steps.version.outputs.version }}.AppImage
           asset_name: Secura-Auth-${{ steps.version.outputs.version }}-Linux.AppImage
           asset_content_type: application/octet-stream
